@@ -11,6 +11,15 @@ import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import android.content.BroadcastReceiver
+import android.content.IntentFilter
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import java.net.HttpURLConnection
+import java.net.URL
 
 class MainActivity : AppCompatActivity() {
 
@@ -60,8 +69,9 @@ class MainActivity : AppCompatActivity() {
                 apply()
             }
 
-            Toast.makeText(this, "Configuración guardada ✅", Toast.LENGTH_SHORT).show()
-            tvEstado.text = "Estado: Configurado. Listo para iniciar."
+            Toast.makeText(this, "Configuración guardada localmente ✅", Toast.LENGTH_SHORT).show()
+            tvEstado.text = "Estado: Conectando para registrar cámara..."
+            registrarBodycamEnServidor(serverUrl, token, androidId, nombre)
         }
 
         btnIniciar.setOnClickListener {
@@ -75,6 +85,45 @@ class MainActivity : AppCompatActivity() {
         btnDetener.setOnClickListener {
             stopService(Intent(this, LocationService::class.java))
             tvEstado.text = "Estado: Servicio detenido ⏹"
+        }
+    }
+
+    private fun registrarBodycamEnServidor(serverUrl: String, token: String, codigo: String, nombre: String) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val url = URL("$serverUrl/api/bodycams/registrar")
+                val conn = url.openConnection() as HttpURLConnection
+                conn.apply {
+                    requestMethod = "POST"
+                    setRequestProperty("Content-Type", "application/json")
+                    setRequestProperty("Authorization", "Bearer $token")
+                    doOutput = true
+                    connectTimeout = 8000
+                    readTimeout = 8000
+                }
+
+                val body = JSONObject().apply {
+                    put("codigo", codigo)
+                    put("nombre", nombre)
+                }.toString()
+
+                conn.outputStream.use { it.write(body.toByteArray()) }
+                val code = conn.responseCode
+                conn.disconnect()
+
+                withContext(Dispatchers.Main) {
+                    val tvEstado = findViewById<TextView>(R.id.tvEstado)
+                    if (code == 200 || code == 201) {
+                        tvEstado.text = "Estado: Cámara registrada en servidor correctamente ✅. Lista para Iniciar."
+                    } else {
+                        tvEstado.text = "Estado: Error al registrar (Código HTTP $code) ❌ Verifique URL/Token."
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    findViewById<TextView>(R.id.tvEstado).text = "Estado: Error de red al intentar registrar cámara ❌ Verifique conexión/IP."
+                }
+            }
         }
     }
 
@@ -106,7 +155,29 @@ class MainActivity : AppCompatActivity() {
         } else {
             startService(intent)
         }
-        findViewById<TextView>(R.id.tvEstado).text = "Estado: ✅ Activo - Enviando ubicación"
+        findViewById<TextView>(R.id.tvEstado).text = "Estado: ✅ Activo - Buscando GPS..."
+    }
+
+    private val statusReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val status = intent?.getStringExtra("status") ?: return
+            findViewById<TextView>(R.id.tvEstado).text = "Estado: $status"
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val filter = IntentFilter("com.bodycam.tracker.STATUS_UPDATE")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(statusReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(statusReceiver, filter)
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        unregisterReceiver(statusReceiver)
     }
 
     override fun onRequestPermissionsResult(

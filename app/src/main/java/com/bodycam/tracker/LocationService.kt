@@ -42,16 +42,25 @@ class LocationService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         startForeground(NOTIFICATION_ID, construirNotificacion())
+        sendStatusUpdate("Iniciando servicio de GPS...")
         iniciarActualizacionesGPS()
         Log.d(TAG, "Servicio GPS iniciado")
         return START_STICKY
+    }
+
+    private fun sendStatusUpdate(message: String) {
+        val intent = Intent("com.bodycam.tracker.STATUS_UPDATE")
+        intent.putExtra("status", message)
+        sendBroadcast(intent)
     }
 
     @Suppress("DEPRECATION")
     private fun iniciarActualizacionesGPS() {
         locationListener = object : android.location.LocationListener {
             override fun onLocationChanged(location: android.location.Location) {
-                Log.d(TAG, "GPS: ${location.latitude}, ${location.longitude} ±${location.accuracy}m")
+                val msg = "GPS recibido: ${location.latitude}, ${location.longitude}"
+                Log.d(TAG, msg)
+                sendStatusUpdate(msg)
                 serviceScope.launch {
                     enviarUbicacion(location.latitude, location.longitude, location.accuracy)
                 }
@@ -59,9 +68,11 @@ class LocationService : Service() {
             override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
             override fun onProviderEnabled(provider: String) {
                 Log.d(TAG, "Proveedor activado: $provider")
+                sendStatusUpdate("Proveedor activado: $provider")
             }
             override fun onProviderDisabled(provider: String) {
                 Log.e(TAG, "Proveedor GPS desactivado: $provider")
+                sendStatusUpdate("GPS DESACTIVADO: $provider")
             }
         }
 
@@ -84,7 +95,12 @@ class LocationService : Service() {
                     registrado = true
                 }
             }
-            if (!registrado) Log.e(TAG, "Ningún proveedor disponible")
+            if (!registrado) {
+                Log.e(TAG, "Ningún proveedor disponible")
+                sendStatusUpdate("ERROR: GPS o Red no disponibles")
+            } else {
+                sendStatusUpdate("Buscando señal GPS...")
+            }
 
             val ultimaGPS = locationManager.getLastKnownLocation(android.location.LocationManager.GPS_PROVIDER)
             val ultimaRed = locationManager.getLastKnownLocation(android.location.LocationManager.NETWORK_PROVIDER)
@@ -132,7 +148,16 @@ class LocationService : Service() {
         val exito = enviarCoordenada(serverUrl, token, codigo, lat, lng, precision)
         if (!exito) {
             guardarPendiente(lat, lng, precision)
+            sendStatusUpdate("Fallo envío, guardado local. Total: \${obtenerCantidadPendientes()}")
+        } else {
+            sendStatusUpdate("Enviado correctamente (Precisión: \${precision}m)")
         }
+    }
+
+    private fun obtenerCantidadPendientes(): Int {
+        val prefs = getSharedPreferences("bodycam_config", Context.MODE_PRIVATE)
+        val json = prefs.getString("pendientes", "[]")
+        return org.json.JSONArray(json).length()
     }
 
     private suspend fun enviarPendientes(
@@ -201,7 +226,8 @@ class LocationService : Service() {
             conn.disconnect()
             (code == 200 || code == 201)
         } catch (e: Exception) {
-            Log.e(TAG, "Error de red: ${e.message}")
+            Log.e(TAG, "Error de red: \${e.message}")
+            sendStatusUpdate("Error de red: \${e.message}")
             false
         }
     }
