@@ -57,7 +57,8 @@
             android:textSize="14sp"
             android:textStyle="bold"
             android:textColor="#333333"
-            android:layout_marginBottom="4dp" />
+            android:layout_marginBottom="4dp"
+            android:visibility="gone" />
 
         <EditText
             android:id="@+id/etServerUrl"
@@ -66,7 +67,8 @@
             android:hint="http://192.168.1.100:3000"
             android:inputType="textUri"
             android:padding="10dp"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="16dp"
+            android:visibility="gone" />
 
         <TextView
             android:layout_width="match_parent"
@@ -75,7 +77,8 @@
             android:textSize="14sp"
             android:textStyle="bold"
             android:textColor="#333333"
-            android:layout_marginBottom="4dp" />
+            android:layout_marginBottom="4dp"
+            android:visibility="gone" />
 
         <EditText
             android:id="@+id/etToken"
@@ -84,7 +87,8 @@
             android:hint="Token del servidor"
             android:inputType="textPassword"
             android:padding="10dp"
-            android:layout_marginBottom="24dp" />
+            android:layout_marginBottom="24dp"
+            android:visibility="gone" />
 
         <Button
             android:id="@+id/btnGuardar"

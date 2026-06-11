@@ -34,8 +34,6 @@ class MainActivity : AppCompatActivity() {
         val prefs = getSharedPreferences("bodycam_config", Context.MODE_PRIVATE)
 
         val etNombre   = findViewById<EditText>(R.id.etNombre)
-        val etServerUrl = findViewById<EditText>(R.id.etServerUrl)
-        val etToken    = findViewById<EditText>(R.id.etToken)
         val tvCodigo   = findViewById<TextView>(R.id.tvCodigo)
         val btnGuardar = findViewById<Button>(R.id.btnGuardar)
         val btnIniciar = findViewById<Button>(R.id.btnIniciar)
@@ -48,16 +46,14 @@ class MainActivity : AppCompatActivity() {
 
         // Cargar configuración guardada
         etNombre.setText(prefs.getString("bodycam_nombre", ""))
-        etServerUrl.setText(prefs.getString("server_url", "http://192.168.1.100:3000"))
-        etToken.setText(prefs.getString("token", ""))
 
         btnGuardar.setOnClickListener {
             val nombre    = etNombre.text.toString().trim()
-            val serverUrl = etServerUrl.text.toString().trim()
-            val token     = etToken.text.toString().trim()
+            val serverUrl = "http://gps-bodycam.munisjl.gob.pe:8087"
+            val token     = "cecom2026"
 
-            if (nombre.isEmpty() || serverUrl.isEmpty()) {
-                Toast.makeText(this, "Nombre y URL del servidor son obligatorios", Toast.LENGTH_SHORT).show()
+            if (nombre.isEmpty()) {
+                Toast.makeText(this, "El nombre de la bodycam es obligatorio", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
