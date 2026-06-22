@@ -34,8 +34,6 @@ class MainActivity : AppCompatActivity() {
         val prefs = getSharedPreferences("bodycam_config", Context.MODE_PRIVATE)
 
         val etNombre   = findViewById<EditText>(R.id.etNombre)
-        val etServerUrl = findViewById<EditText>(R.id.etServerUrl)
-        val etToken    = findViewById<EditText>(R.id.etToken)
         val tvCodigo   = findViewById<TextView>(R.id.tvCodigo)
         val btnGuardar = findViewById<Button>(R.id.btnGuardar)
         val btnIniciar = findViewById<Button>(R.id.btnIniciar)
@@ -47,17 +45,33 @@ class MainActivity : AppCompatActivity() {
         tvCodigo.text = "ID dispositivo: $androidId"
 
         // Cargar configuración guardada
-        etNombre.setText(prefs.getString("bodycam_nombre", ""))
-        etServerUrl.setText(prefs.getString("server_url", "http://192.168.1.100:3000"))
-        etToken.setText(prefs.getString("token", ""))
+        val nombreGuardado = prefs.getString("bodycam_nombre", "")
+        etNombre.setText(nombreGuardado)
+        
+        // Bloquear si ya tiene nombre y auto-iniciar
+        if (!nombreGuardado.isNullOrEmpty()) {
+            etNombre.isEnabled = false
+            btnGuardar.visibility = android.view.View.GONE
+            
+            tvEstado.text = "Estado: Buscando GPS..."
+            pedirPermisosEIniciar()
+        }
+
+        // Gesto secreto: Mantener presionado el ID para desbloquear configuración
+        tvCodigo.setOnLongClickListener {
+            etNombre.isEnabled = true
+            btnGuardar.visibility = android.view.View.VISIBLE
+            Toast.makeText(this, "Modo configuración desbloqueado 🔓", Toast.LENGTH_SHORT).show()
+            true
+        }
 
         btnGuardar.setOnClickListener {
             val nombre    = etNombre.text.toString().trim()
-            val serverUrl = etServerUrl.text.toString().trim()
-            val token     = etToken.text.toString().trim()
+            val serverUrl = "http://gps-bodycam.munisjl.gob.pe:8087"
+            val token     = "cecom2026"
 
-            if (nombre.isEmpty() || serverUrl.isEmpty()) {
-                Toast.makeText(this, "Nombre y URL del servidor son obligatorios", Toast.LENGTH_SHORT).show()
+            if (nombre.isEmpty()) {
+                Toast.makeText(this, "El nombre de la bodycam es obligatorio", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -71,6 +85,11 @@ class MainActivity : AppCompatActivity() {
 
             Toast.makeText(this, "Configuración guardada localmente ✅", Toast.LENGTH_SHORT).show()
             tvEstado.text = "Estado: Conectando para registrar cámara..."
+            
+            // Bloquear de nuevo después de guardar
+            etNombre.isEnabled = false
+            btnGuardar.visibility = android.view.View.GONE
+
             registrarBodycamEnServidor(serverUrl, token, androidId, nombre)
         }
 
@@ -114,7 +133,8 @@ class MainActivity : AppCompatActivity() {
                 withContext(Dispatchers.Main) {
                     val tvEstado = findViewById<TextView>(R.id.tvEstado)
                     if (code == 200 || code == 201) {
-                        tvEstado.text = "Estado: Cámara registrada en servidor correctamente ✅. Lista para Iniciar."
+                        tvEstado.text = "Estado: Cámara registrada ✅. Buscando GPS..."
+                        pedirPermisosEIniciar()
                     } else {
                         tvEstado.text = "Estado: Error al registrar (Código HTTP $code) ❌ Verifique URL/Token."
                     }
