@@ -24,8 +24,8 @@ class LocationService : Service() {
         const val CHANNEL_ID = "bodycam_channel"
         const val NOTIFICATION_ID = 1001
         const val TAG = "LocationService"
-        const val INTERVALO_MS = 15_000L
-        const val INTERVALO_MINIMO_MS = 10_000L
+        const val INTERVALO_MS = 10_000L // Intervalo cambiado a 10 segundos
+        const val INTERVALO_MINIMO_MS = 5_000L
     }
 
     override fun onCreate() {

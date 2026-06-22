@@ -45,7 +45,25 @@ class MainActivity : AppCompatActivity() {
         tvCodigo.text = "ID dispositivo: $androidId"
 
         // Cargar configuración guardada
-        etNombre.setText(prefs.getString("bodycam_nombre", ""))
+        val nombreGuardado = prefs.getString("bodycam_nombre", "")
+        etNombre.setText(nombreGuardado)
+        
+        // Bloquear si ya tiene nombre y auto-iniciar
+        if (!nombreGuardado.isNullOrEmpty()) {
+            etNombre.isEnabled = false
+            btnGuardar.visibility = android.view.View.GONE
+            
+            tvEstado.text = "Estado: Buscando GPS..."
+            pedirPermisosEIniciar()
+        }
+
+        // Gesto secreto: Mantener presionado el ID para desbloquear configuración
+        tvCodigo.setOnLongClickListener {
+            etNombre.isEnabled = true
+            btnGuardar.visibility = android.view.View.VISIBLE
+            Toast.makeText(this, "Modo configuración desbloqueado 🔓", Toast.LENGTH_SHORT).show()
+            true
+        }
 
         btnGuardar.setOnClickListener {
             val nombre    = etNombre.text.toString().trim()
@@ -67,6 +85,11 @@ class MainActivity : AppCompatActivity() {
 
             Toast.makeText(this, "Configuración guardada localmente ✅", Toast.LENGTH_SHORT).show()
             tvEstado.text = "Estado: Conectando para registrar cámara..."
+            
+            // Bloquear de nuevo después de guardar
+            etNombre.isEnabled = false
+            btnGuardar.visibility = android.view.View.GONE
+
             registrarBodycamEnServidor(serverUrl, token, androidId, nombre)
         }
 
@@ -110,7 +133,8 @@ class MainActivity : AppCompatActivity() {
                 withContext(Dispatchers.Main) {
                     val tvEstado = findViewById<TextView>(R.id.tvEstado)
                     if (code == 200 || code == 201) {
-                        tvEstado.text = "Estado: Cámara registrada en servidor correctamente ✅. Lista para Iniciar."
+                        tvEstado.text = "Estado: Cámara registrada ✅. Buscando GPS..."
+                        pedirPermisosEIniciar()
                     } else {
                         tvEstado.text = "Estado: Error al registrar (Código HTTP $code) ❌ Verifique URL/Token."
                     }

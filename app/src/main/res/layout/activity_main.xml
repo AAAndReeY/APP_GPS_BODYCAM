@@ -106,7 +106,8 @@
             android:text="Iniciar rastreo GPS"
             android:backgroundTint="#27AE60"
             android:textColor="#FFFFFF"
-            android:layout_marginBottom="12dp" />
+            android:layout_marginBottom="12dp"
+            android:visibility="gone" />
 
         <Button
             android:id="@+id/btnDetener"
@@ -115,7 +116,8 @@
             android:text="Detener rastreo"
             android:backgroundTint="#E74C3C"
             android:textColor="#FFFFFF"
-            android:layout_marginBottom="24dp" />
+            android:layout_marginBottom="24dp"
+            android:visibility="gone" />
 
         <TextView
             android:id="@+id/tvEstado"
