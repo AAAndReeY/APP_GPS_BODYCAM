@@ -119,6 +119,15 @@
             android:layout_marginBottom="24dp"
             android:visibility="gone" />
 
+        <Button
+            android:id="@+id/btnValidar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Validar persona"
+            android:backgroundTint="#8E44AD"
+            android:textColor="#FFFFFF"
+            android:layout_marginBottom="24dp" />
+
         <TextView
             android:id="@+id/tvEstado"
             android:layout_width="match_parent"
