@@ -105,6 +105,10 @@ class MainActivity : AppCompatActivity() {
             stopService(Intent(this, LocationService::class.java))
             tvEstado.text = "Estado: Servicio detenido ⏹"
         }
+
+        findViewById<Button>(R.id.btnValidar).setOnClickListener {
+            startActivity(Intent(this, ValidarActivity::class.java))
+        }
     }
 
     private fun registrarBodycamEnServidor(serverUrl: String, token: String, codigo: String, nombre: String) {
