@@ -3,6 +3,20 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+// Lee el archivo .env de la raíz del proyecto (ignorado por git). Ver .env.example
+val envVars: Map<String, String> = rootProject.file(".env").takeIf { it.exists() }
+    ?.readLines()
+    ?.map { it.trim() }
+    ?.filter { it.isNotEmpty() && !it.startsWith("#") && it.contains("=") }
+    ?.associate { line ->
+        line.substringBefore("=").trim() to line.substringAfter("=").trim().trim('"', '\'')
+    }
+    ?: emptyMap()
+
+fun requireEnv(name: String): String =
+    envVars[name]?.takeIf { it.isNotEmpty() }
+        ?: throw GradleException("Falta '$name' en el archivo .env de la raíz del proyecto (copia .env.example a .env y complétalo)")
+
 android {
     namespace = "com.bodycam.tracker"
     compileSdk = 34
@@ -13,6 +27,13 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0.0"
+
+        buildConfigField("String", "SERVER_URL", "\"${requireEnv("SERVER_URL").trimEnd('/')}\"")
+        buildConfigField("String", "API_TOKEN", "\"${requireEnv("API_TOKEN")}\"")
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     buildTypes {

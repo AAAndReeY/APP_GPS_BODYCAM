@@ -67,8 +67,8 @@ class MainActivity : AppCompatActivity() {
 
         btnGuardar.setOnClickListener {
             val nombre    = etNombre.text.toString().trim()
-            val serverUrl = "http://gps-bodycam.munisjl.gob.pe:8087"
-            val token     = "cecom2026"
+            val serverUrl = BuildConfig.SERVER_URL
+            val token     = BuildConfig.API_TOKEN
 
             if (nombre.isEmpty()) {
                 Toast.makeText(this, "El nombre de la bodycam es obligatorio", Toast.LENGTH_SHORT).show()
