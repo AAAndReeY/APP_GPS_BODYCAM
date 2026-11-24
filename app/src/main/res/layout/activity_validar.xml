@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+    <androidx.camera.view.PreviewView
+        android:id="@+id/previewView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <TextView
+        android:id="@+id/tvGuia"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:padding="14dp"
+        android:textColor="#FFFFFF"
+        android:textSize="15sp"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="#B3000000"
+        android:orientation="vertical"
+        android:padding="6dp">
+
+        <TextView
+            android:id="@+id/tvEstadoCamara"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Iniciando cámara..."
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:layout_marginBottom="6dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnVolver"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Volver"
+                android:textSize="11sp"
+                android:minWidth="0dp"
+                android:paddingLeft="4dp"
+                android:paddingRight="4dp"
+                android:backgroundTint="#7F8C8D"
+                android:textColor="#FFFFFF" />
+
+            <Button
+                android:id="@+id/btnCapturar"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.6"
+                android:layout_marginLeft="4dp"
+                android:layout_marginRight="4dp"
+                android:text="Capturar"
+                android:textSize="12sp"
+                android:minWidth="0dp"
+                android:enabled="false"
+                android:backgroundTint="#8E44AD"
+                android:textColor="#FFFFFF" />
+
+            <Button
+                android:id="@+id/btnGirar"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Girar"
+                android:textSize="11sp"
+                android:minWidth="0dp"
+                android:paddingLeft="4dp"
+                android:paddingRight="4dp"
+                android:enabled="false"
+                android:backgroundTint="#4A90D9"
+                android:textColor="#FFFFFF" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>
