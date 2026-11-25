@@ -61,6 +61,7 @@ class ValidarActivity : AppCompatActivity() {
     private var enPrimerPlano = false
 
     private companion object {
+        const val GRABADORA_BODYCAM = "com.meige.policerecord"
         const val GUIA_PASOS =
             "Esta bodycam usa su propia cámara.\n\n" +
             "1. Tome la foto con el BOTÓN DE FOTO de la bodycam.\n" +
@@ -98,11 +99,21 @@ class ValidarActivity : AppCompatActivity() {
             vincularCamara()
         }
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+        if (tieneGrabadoraBodycam()) {
+            // En la bodycam siempre se usa su propia cámara (la grabadora es dueña del sensor)
+            activarModoBodycam("Bodycam con grabadora del fabricante.")
+        } else if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
             iniciarCamara()
         } else {
             pedirPermisoCamara.launch(Manifest.permission.CAMERA)
         }
+    }
+
+    private fun tieneGrabadoraBodycam(): Boolean = try {
+        packageManager.getPackageInfo(GRABADORA_BODYCAM, 0)
+        true
+    } catch (e: PackageManager.NameNotFoundException) {
+        false
     }
 
     // ─── Modo 1: cámara propia (CameraX) ──────────────────────────────────────
@@ -305,18 +316,28 @@ class ValidarActivity : AppCompatActivity() {
         if (modoBodycam) tvGuia.text = "🔎 Validando persona...\n\nEspere un momento"
         btnCapturar.isEnabled = false
         scope.launch {
+            var fallo: Throwable? = null
             val resultado: Pair<Int, org.json.JSONObject>? = try {
                 val reducida = File(cacheDir, "validar.jpg")
                 ReconocimientoClient.prepararFoto(original, reducida)
-                ReconocimientoClient.enviarFoto(reducida)
-            } catch (e: Exception) {
+                ReconocimientoClient.enviarFoto(this@ValidarActivity, reducida)
+            } catch (e: Throwable) {
+                fallo = e
+                android.util.Log.e("ValidarActivity", "Fallo al validar la foto", e)
                 null
             }
 
             withContext(Dispatchers.Main) {
                 if (isFinishing || isDestroyed) return@withContext
                 val mensaje = if (resultado == null) {
-                    "No se pudo conectar con el servidor. Verifique la conexión."
+                    val detalle = "${fallo?.javaClass?.simpleName}: ${fallo?.message}"
+                    when (fallo) {
+                        is java.net.SocketTimeoutException ->
+                            "El servidor tardó demasiado en responder.\n\n$detalle"
+                        is java.io.IOException ->
+                            "No se pudo conectar con el servidor. Verifique la conexión.\n\n$detalle"
+                        else -> "No se pudo procesar la foto.\n\n$detalle"
+                    }
                 } else {
                     ReconocimientoClient.mensaje(resultado.first, resultado.second)
                 }

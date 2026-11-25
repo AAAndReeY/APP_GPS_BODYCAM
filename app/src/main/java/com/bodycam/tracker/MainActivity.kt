@@ -115,7 +115,7 @@ class MainActivity : AppCompatActivity() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val url = URL("$serverUrl/api/bodycams/registrar")
-                val conn = url.openConnection() as HttpURLConnection
+                val conn = Red.abrir(this@MainActivity, url)
                 conn.apply {
                     requestMethod = "POST"
                     setRequestProperty("Content-Type", "application/json")

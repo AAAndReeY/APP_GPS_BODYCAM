@@ -204,7 +204,7 @@ class LocationService : Service() {
     ): Boolean {
         return try {
             val url = URL("$serverUrl/api/ubicacion")
-            val conn = url.openConnection() as HttpURLConnection
+            val conn = Red.abrir(this, url)
             conn.apply {
                 requestMethod = "POST"
                 setRequestProperty("Content-Type", "application/json")
