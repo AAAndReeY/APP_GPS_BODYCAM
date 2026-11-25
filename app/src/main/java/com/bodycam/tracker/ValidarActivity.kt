@@ -61,6 +61,7 @@ class ValidarActivity : AppCompatActivity() {
     private var enPrimerPlano = false
 
     private companion object {
+        const val GRABADORA_BODYCAM = "com.meige.policerecord"
         const val GUIA_PASOS =
             "Esta bodycam usa su propia cámara.\n\n" +
             "1. Tome la foto con el BOTÓN DE FOTO de la bodycam.\n" +
@@ -98,11 +99,21 @@ class ValidarActivity : AppCompatActivity() {
             vincularCamara()
         }
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+        if (tieneGrabadoraBodycam()) {
+            // En la bodycam siempre se usa su propia cámara (la grabadora es dueña del sensor)
+            activarModoBodycam("Bodycam con grabadora del fabricante.")
+        } else if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
             iniciarCamara()
         } else {
             pedirPermisoCamara.launch(Manifest.permission.CAMERA)
         }
+    }
+
+    private fun tieneGrabadoraBodycam(): Boolean = try {
+        packageManager.getPackageInfo(GRABADORA_BODYCAM, 0)
+        true
+    } catch (e: PackageManager.NameNotFoundException) {
+        false
     }
 
     // ─── Modo 1: cámara propia (CameraX) ──────────────────────────────────────
