@@ -305,18 +305,28 @@ class ValidarActivity : AppCompatActivity() {
         if (modoBodycam) tvGuia.text = "🔎 Validando persona...\n\nEspere un momento"
         btnCapturar.isEnabled = false
         scope.launch {
+            var fallo: Throwable? = null
             val resultado: Pair<Int, org.json.JSONObject>? = try {
                 val reducida = File(cacheDir, "validar.jpg")
                 ReconocimientoClient.prepararFoto(original, reducida)
                 ReconocimientoClient.enviarFoto(this@ValidarActivity, reducida)
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
+                fallo = e
+                android.util.Log.e("ValidarActivity", "Fallo al validar la foto", e)
                 null
             }
 
             withContext(Dispatchers.Main) {
                 if (isFinishing || isDestroyed) return@withContext
                 val mensaje = if (resultado == null) {
-                    "No se pudo conectar con el servidor. Verifique la conexión."
+                    val detalle = "${fallo?.javaClass?.simpleName}: ${fallo?.message}"
+                    when (fallo) {
+                        is java.net.SocketTimeoutException ->
+                            "El servidor tardó demasiado en responder.\n\n$detalle"
+                        is java.io.IOException ->
+                            "No se pudo conectar con el servidor. Verifique la conexión.\n\n$detalle"
+                        else -> "No se pudo procesar la foto.\n\n$detalle"
+                    }
                 } else {
                     ReconocimientoClient.mensaje(resultado.first, resultado.second)
                 }
