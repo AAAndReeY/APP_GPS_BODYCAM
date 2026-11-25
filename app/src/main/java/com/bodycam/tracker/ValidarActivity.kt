@@ -308,7 +308,7 @@ class ValidarActivity : AppCompatActivity() {
             val resultado: Pair<Int, org.json.JSONObject>? = try {
                 val reducida = File(cacheDir, "validar.jpg")
                 ReconocimientoClient.prepararFoto(original, reducida)
-                ReconocimientoClient.enviarFoto(reducida)
+                ReconocimientoClient.enviarFoto(this@ValidarActivity, reducida)
             } catch (e: Exception) {
                 null
             }

@@ -1,5 +1,6 @@
 package com.bodycam.tracker
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
@@ -50,9 +51,9 @@ object ReconocimientoClient {
     }
 
     /** Envía la foto como multipart/form-data (campo "foto"). Devuelve (código HTTP, JSON). */
-    fun enviarFoto(foto: File): Pair<Int, JSONObject> {
+    fun enviarFoto(context: Context, foto: File): Pair<Int, JSONObject> {
         val boundary = "----BodycamBoundary${System.currentTimeMillis()}"
-        val conn = URL("${BuildConfig.SERVER_URL}/api/reconocimiento").openConnection() as HttpURLConnection
+        val conn = Red.abrir(context, URL("${BuildConfig.SERVER_URL}/api/reconocimiento"))
         try {
             conn.apply {
                 requestMethod = "POST"
